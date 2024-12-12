@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Extract Archive Files</title> 
+    <hta:application 
+        applicationname="MultiTextForm"
+        border="thick"
+        scroll="no"
+        singleinstance="yes"
+        windowstate="normal"
+    />
+    <style>
+        
+        body {
+            margin: 20px;
+            font-family: "Comic Sans MS";
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input[type="text"] {
+            width: 200px;
+            padding: 5px;
+            margin-bottom: 10px;
+            font-family: "Comic Sans MS";
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!--<h2>Extract Archive</h2>-->
+    <form id="userForm">
+        <label for="text1">Source Path:</label>
+        <input type="text" id="text1">
+        
+        <input type = "button" value = "Browse ..." onClick="pickFile('text1')" />
+
+        <label for="text2">Destination Path:</label>
+        <input type="text" id="text2">
+        
+        <input type = "button" value = "Browse ..." onClick="ChooseSaveFolder('text2')" /> <br><br>
+       
+        
+        <button type="button" onclick="submitForm()">Submit</button>
+    </form>
+
+    <script language="VBScript">
+        Sub Window_OnLoad
+            window.ResizeTo Document.Body.ScrollWidth - 1000, Document.Body.ScrollHeight + 65
+        End Sub
+
+        Sub submitForm()
+            Dim text1, text2, text3
+            text1 = Document.getElementById("text1").Value
+            text2 = Document.getElementById("text2").Value
+
+            If text1 = "" Or text2 = "" Then
+                MsgBox "Both Source and Destination paths are required!", vbExclamation, "Error"
+                Exit Sub
+            End If
+
+            ' Validate file and folder paths
+            Set fso = CreateObject("Scripting.FileSystemObject")
+            If Not fso.FileExists(text1) Then
+                MsgBox "The specified source file does not exist!", vbExclamation, "Error"
+                Exit Sub
+            End If
+
+            If Not fso.FolderExists(text2) Then
+                MsgBox "The specified destination folder does not exist!", vbExclamation, "Error"
+                Exit Sub
+            End If
+            Set fso = Nothing
+
+            Set objShell = CreateObject("WScript.shell")
+
+            objShell.run "powershell -c expand-archive -LiteralPath """ & text1 & """ -DestinationPath """ & text2 & """", 0, True
+
+            MsgBox "Extraction completed successfully!", vbInformation, "Success"
+            Set objShell = Nothing
+        End Sub
+
+        'Sub ChooseZipFile(inputId)
+            'Dim strStartDir, selectedZip
+            'strStartDir = "C:\"
+            'selectedZip = PickFile(strStartDir)
+            'If selectedZip <> "" Then 
+                'Document.getElementById(inputId).Value = selectedFolder
+           'End If 
+        'End Sub 
+
+        'Function PickFile(strStartDir)
+            'Dim SA, F
+            'Set SA = CreateObject("Shell.Application")
+            'Set Z = SA.BrowseForZip(0, "Choose a folder", 0, strStartDir)
+            
+        'End Function
+
+         
+        Sub pickFile(inputId)
+            Dim shell, filePath
+            Set shell = CreateObject("WScript.Shell")
+            
+            ' Call PowerShell to pick a file
+            filePath = shell.Exec("powershell -command ""[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') | Out-Null; $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog; $OpenFileDialog.Filter = 'ZIP Files (*.zip)|*.zip|All Files (*.*)|*.*'; $OpenFileDialog.ShowDialog() | Out-Null; $OpenFileDialog.FileName""").StdOut.ReadAll()
+            
+            If filePath <> "" Then
+                Document.getElementById(inputId).Value = filePath 'MsgBox "You selected: " & filePath, vbInformation, "File Selected"
+            Else
+                MsgBox "No file selected", vbExclamation, "Selection Canceled"
+            End If
+
+            Set shell = Nothing
+        End Sub
+
+        Sub ChooseSaveFolder(inputId)
+            Dim strStartDir, selectedFolder
+            strStartDir = "C:\"
+            selectedFolder = PickFolder(strStartDir)
+            If selectedFolder <> "" Then 
+                Document.getElementById(inputId).Value = selectedFolder
+            End If 
+        End Sub
+
+            Function PickFolder(strStartDir)
+            Dim SA, F
+            Set SA = CreateObject("Shell.Application")
+            Set F = SA.BrowseForFolder(0, "Choose a folder", 0, strStartDir)
+            If (Not F Is Nothing) Then
+                PickFolder = F.Items.Item.path
+            Else 
+                PickFolder = ""
+            End If
+            Set F = Nothing
+            Set SA = Nothing
+            End Function
+    </script>
+</body>
+</html>
