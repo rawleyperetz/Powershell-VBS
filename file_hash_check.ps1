@@ -1,11 +1,11 @@
-﻿$file_data = Import-Csv "C:\dev\powershellWorks\file_hash_check.csv" -Header "Hash", "Path"
+﻿$file_data = Import-Csv "C:\...\file_hash_check.csv" -Header "Hash", "Path"
 
 $file_count = $file_data.Count
 
 $O_hash = $file_data | Select-Object "Hash"
 $O_path = $file_data | select-Object "Path"
 
-$directory = "C:\Users\7flig\Desktop\textFiles"
+$directory = "C:\...Desktop\textFiles"
 $all_files = Get-ChildItem -Path $directory -Exclude *.tmp, *.log -Recurse
 $all_count = $all_files.Count
 
@@ -23,12 +23,12 @@ foreach ( $item in $file_data) {
  #Write-Host $item.Path
  $valid = Test-Path -Path $item.Path
  if($valid -ne "True"){
-    Write-Output "$item.Path" >> "C:\dev\powershellWorks\file_not_hash.txt"  
+    Write-Output "$item.Path" >> "C:\...\file_not_hash.txt"  
  }
  try{
     $file_hash = (Get-FileHash -Algorithm SHA1 -Path $item.Path).Hash #| Select-Object Hash
  } catch {
-    Write-Output "Error processing $($item.Path): $($_.Exception.Message)" >> "C:\dev\powershellWorks\errors.log"
+    Write-Output "Error processing $($item.Path): $($_.Exception.Message)" >> "C:\...\errors.log"
     continue
  }
  #Write-Host $file_hash
